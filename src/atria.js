@@ -1,4 +1,4 @@
-=== FILE: src/atria.js ===
+
 import { withRetry } from "./utils.js";
 
 const ATRIA_URL = "https://api.atria-asi.ai/v1/chat/completions";
@@ -79,4 +79,3 @@ export async function callAtria(params) {
     }
   );
 }
-=== END FILE ===
