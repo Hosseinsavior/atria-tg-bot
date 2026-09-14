@@ -1,4 +1,3 @@
-=== FILE: package.json ===
 {
   "name": "atria-tg-bot",
   "version": "1.0.0",
@@ -9,4 +8,4 @@
     "dev": "wrangler dev"
   }
 }
-=== END FILE ===
+
