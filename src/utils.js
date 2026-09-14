@@ -1,4 +1,4 @@
-=== FILE: src/utils.js ===
+
 export function escapeRegex(str) {
   return String(str).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -63,4 +63,3 @@ export async function withRetry(fn, opts) {
   }
   throw lastErr;
 }
-=== END FILE ===
