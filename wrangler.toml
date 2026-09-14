@@ -5,7 +5,7 @@ compatibility_date = "2025-01-01"
 # KV فقط برای dedup سبک (اختیاری) — conversation در DO است
 [[kv_namespaces]]
 binding = "DEDUP_KV"
-id = "xxxxxxxxxxxxxxxxxxxx"
+id = "394aa4e0f3fb41b387269e9b4d4eefaa"
 
 # Durable Object
 [[durable_objects.bindings]]
