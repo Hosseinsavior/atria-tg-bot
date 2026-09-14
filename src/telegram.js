@@ -1,3 +1,4 @@
+=== FILE: src/telegram.js ===
 import { splitMessage, withRetry } from "./utils.js";
 
 export async function sendTelegramMessage(chatId, text, env, replyToMessageId) {
@@ -9,9 +10,9 @@ export async function sendTelegramMessage(chatId, text, env, replyToMessageId) {
     if (i === 0 && replyToMessageId) body.reply_to_message_id = replyToMessageId;
 
     await withRetry(
-      async () => {
+      async function () {
         const res = await fetch(
-          `https://api.telegram.org/bot${env.BOT_TOKEN}/sendMessage`,
+          "https://api.telegram.org/bot" + env.BOT_TOKEN + "/sendMessage",
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -21,25 +22,28 @@ export async function sendTelegramMessage(chatId, text, env, replyToMessageId) {
 
         if (res.ok) return;
 
-        const errText = await res.text().catch(() => "");
-        const err = new Error(`TG ${res.status}: ${errText}`);
+        const errText = await res.text().catch(function () { return ""; });
+        const err = new Error("TG " + res.status + ": " + errText);
         err.status = res.status;
 
-        // رعایت retry_after برای 429
         if (res.status === 429) {
           try {
             const parsed = JSON.parse(errText);
-            err.retryAfterSec = parsed?.parameters?.retry_after;
-          } catch {}
+            if (parsed && parsed.parameters && parsed.parameters.retry_after) {
+              err.retryAfterSec = parsed.parameters.retry_after;
+            }
+          } catch (e) { /* ignore */ }
         }
         throw err;
       },
       {
         maxAttempts: 4,
-        shouldRetry: (err) => err.status === 429 || (err.status >= 500 && err.status < 600),
-        // اگر retry_after داشت، از همان استفاده کن
-        baseDelayMs: 1000
+        baseDelayMs: 1000,
+        shouldRetry: function (err) {
+          return err.status === 429 || (err.status >= 500 && err.status < 600);
+        }
       }
     );
   }
 }
+=== END FILE ===
