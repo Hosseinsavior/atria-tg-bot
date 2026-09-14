@@ -1,0 +1,20 @@
+name = "atria-tg-bot"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# KV فقط برای dedup سبک (اختیاری) — conversation در DO است
+[[kv_namespaces]]
+binding = "DEDUP_KV"
+id = "xxxxxxxxxxxxxxxxxxxx"
+
+# Durable Object
+[[durable_objects.bindings]]
+name = "CHAT_SESSION"
+class_name = "ChatSession"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ChatSession"]
+
+# برای secret ها از `wrangler secret put` استفاده کن
+# BOT_TOKEN, BOT_USERNAME, BOT_ID, ATRIA_API_KEY, WEBHOOK_
