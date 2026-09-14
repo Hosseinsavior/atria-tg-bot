@@ -1,4 +1,4 @@
-=== FILE: src/telegram.js ===
+
 import { splitMessage, withRetry } from "./utils.js";
 
 export async function sendTelegramMessage(chatId, text, env, replyToMessageId) {
@@ -46,4 +46,3 @@ export async function sendTelegramMessage(chatId, text, env, replyToMessageId) {
     );
   }
 }
-=== END FILE ===
