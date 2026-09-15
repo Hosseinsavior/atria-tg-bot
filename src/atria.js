@@ -4,16 +4,18 @@ import { withRetry } from "./utils.js";
 const ATRIA_URL = "https://api.atria-asi.ai/v1/chat/completions";
 const MODEL = "Atria-Dawn-Preview";
 
-export async function callAtria(params) {
-  const userText = params.userText;
-  const history = params.history;
-  const env = params.env;
+const DEFAULT_SYSTEM_PROMPT =
+  "تو یک دستیار در گروه تلگرام هستی. پاسخ‌ها را کوتاه و دقیق بده.";
 
-  const messages = [
-    { role: "system", content: "تو یک دستیار در گروه تلگرام هستی. پاسخ‌ها را کوتاه و دقیق بده." }
-  ].concat(history).concat([
-    { role: "user", content: userText }
-  ]);
+export async function callAtria(params) {
+  const env = params.env;
+  const history = params.history || [];
+  const userText = params.userText;
+  const systemPrompt = params.systemPrompt || DEFAULT_SYSTEM_PROMPT;
+
+  const messages = [{ role: "system", content: systemPrompt }]
+    .concat(history)
+    .concat([{ role: "user", content: userText }]);
 
   return withRetry(
     async function () {
@@ -28,7 +30,11 @@ export async function callAtria(params) {
             Authorization: "Bearer " + env.ATRIA_API_KEY,
             "Content-Type": "application/json"
           },
-          body: JSON.stringify({ model: MODEL, messages: messages, max_tokens: 1024 }),
+          body: JSON.stringify({
+            model: MODEL,
+            messages: messages,
+            max_tokens: 2048
+          }),
           signal: controller.signal
         });
       } catch (e) {
