@@ -63,3 +63,35 @@ export async function withRetry(fn, opts) {
   }
   throw lastErr;
 }
+
+export function safeParseJSON(text) {
+  if (typeof text !== "string") return null;
+  // حذف ```json ... ```
+  let cleaned = text.trim();
+  cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/```$/i, "").trim();
+
+  // تلاش مستقیم
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) { /* ادامه بده */ }
+
+  // تلاش برای پیدا کردن اولین { ... } یا [ ... ]
+  const firstBrace = cleaned.indexOf("{");
+  const lastBrace  = cleaned.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    try {
+      return JSON.parse(cleaned.slice(firstBrace, lastBrace + 1));
+    } catch (e) { /* ادامه بده */ }
+  }
+
+  const firstBracket = cleaned.indexOf("[");
+  const lastBracket  = cleaned.lastIndexOf("]");
+  if (firstBracket !== -1 && lastBracket > firstBracket) {
+    try {
+      return JSON.parse(cleaned.slice(firstBracket, lastBracket + 1));
+    } catch (e) { /* ادامه بده */ }
+  }
+
+  return null;
+}
+
