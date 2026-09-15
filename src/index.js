@@ -3,6 +3,7 @@ import { ChatSession } from "./chat-session.js";
 import { escapeRegex, validateEnv } from "./utils.js";
 import { sendTelegramMessage } from "./telegram.js";
 import { parseCommand, COMMANDS, helpText } from "./commands.js";
+import { saveMessage } from "./db.js";
 
 export { ChatSession };
 
@@ -43,21 +44,26 @@ export default {
   }
 };
 
-/* ---------- dispatch اصلی ---------- */
+/* ---------- dispatch ---------- */
 async function dispatch(update, env) {
   const msg = update.message;
-  if (!msg || !msg.text) return;
+  if (!msg) return;
 
   const chatId = msg.chat.id;
-  const text = msg.text;
   const isGroup = msg.chat.type === "group" || msg.chat.type === "supergroup";
 
-  /* ---------- ۱. /help ---------- */
-  const helpRegex = new RegExp("^/help(?:@" + escapeRegex(env.BOT_USERNAME) + ")?\\s*$", "i");
-  if (helpRegex.test(text)) {
-    await sendTelegramMessage(chatId, helpText(), env, msg.message_id);
-    return;
+  /* ---------- ۱. ذخیره‌ی پیام گروه در D1 (با await) ---------- */
+  if (isGroup && msg.text) {
+    try {
+      await saveMessage(env, msg);
+    } catch (e) {
+      console.error("saveMessage error:", e);
+    }
   }
+
+  if (!msg.text) return;
+
+  const text = msg.text;
 
   /* ---------- ۲. کامندها ---------- */
   const parsed = parseCommand(text, env.BOT_USERNAME);
@@ -84,7 +90,6 @@ async function dispatch(update, env) {
   const cleanText = text.replace(mentionCleanupRegex, "").trim();
   if (!cleanText) return;
 
-  // dedup بر اساس update_id
   if (env.DEDUP_KV) {
     const key = "u:" + update.update_id;
     const seen = await env.DEDUP_KV.get(key);
@@ -92,7 +97,6 @@ async function dispatch(update, env) {
     await env.DEDUP_KV.put(key, "1", { expirationTtl: 300 });
   }
 
-  // مسیریابی به DO مخصوص همین chat
   const id = env.CHAT_SESSION.idFromName("chat:" + chatId);
   const stub = env.CHAT_SESSION.get(id);
 
@@ -151,7 +155,5 @@ async function handleCommand(msg, env, parsed) {
   }
 
   const suffix = result.fromCache ? "\n\n_⏱ از cache_" : "";
-  const finalText = result.text + suffix;
-
-  await sendTelegramMessage(chatId, finalText, env, msg.message_id);
+  await sendTelegramMessage(chatId, result.text + suffix, env, msg.message_id);
 }
